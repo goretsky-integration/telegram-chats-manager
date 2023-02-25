@@ -2,6 +2,7 @@ import contextlib
 
 import httpx
 
+import exceptions
 import models
 
 __all__ = (
@@ -29,5 +30,7 @@ class TelegramAPIService:
         url = '/getChat'
         request_query_params = {'chat_id': chat_id}
         response = self.__api_client.get(url, params=request_query_params)
+        if response.status_code != 200:
+            raise exceptions.TelegramAPIError('Could not get chat from Telegram API')
         response_data = response.json()
         return models.Chat.from_response_data(response_data['result'])
