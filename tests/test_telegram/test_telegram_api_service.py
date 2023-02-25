@@ -1,3 +1,4 @@
+import httpx
 import pytest
 
 import exceptions
@@ -5,40 +6,23 @@ import models
 from telegram import TelegramAPIService
 
 
-class FakeSuccessfulResponse:
-    status_code = 200
-
-    def __init__(self, response_data: dict):
-        self.__response_data = response_data
-
-    def json(self) -> dict:
-        return {'result': self.__response_data}
-
-
-class FakeResponseWithCustomStatusCode:
-
-    def __init__(self, status_code: int):
-        self.status_code = status_code
-
-
-class FakeTelegramAPIClient:
-
-    def __init__(self, response):
-        self.__response = response
-
-    def get(self, *args, **kwargs):
-        return self.__response
+@pytest.fixture
+def telegram_api_service():
+    with httpx.Client(base_url='http://localhost:8000') as client:
+        yield TelegramAPIService(api_client=client)
 
 
 @pytest.mark.parametrize(
-    'telegram_api_client, chat',
+    'response_json, chat',
     [
         (
-                FakeTelegramAPIClient(FakeSuccessfulResponse({
-                    'id': 1234,
-                    'type': 'private',
-                    'first_name': 'Alex',
-                })),
+                {
+                    'result': {
+                        'id': 1234,
+                        'type': 'private',
+                        'first_name': 'Alex',
+                    }
+                },
                 models.Chat(
                     id=1234,
                     type='private',
@@ -46,12 +30,14 @@ class FakeTelegramAPIClient:
                 ),
         ),
         (
-                FakeTelegramAPIClient(FakeSuccessfulResponse({
-                    'id': 1234,
-                    'type': 'supergroup',
-                    'title': 'Managers',
-                    'username': 'managers',
-                })),
+                {
+                    'result': {
+                        'id': 1234,
+                        'type': 'supergroup',
+                        'title': 'Managers',
+                        'username': 'managers',
+                    }
+                },
                 models.Chat(
                     id=1234,
                     type='supergroup',
@@ -61,21 +47,19 @@ class FakeTelegramAPIClient:
         ),
     ]
 )
-def test_telegram_api_service_get_chats(telegram_api_client, chat):
-    assert TelegramAPIService(api_client=telegram_api_client).get_chat(chat_id=1234) == chat
+def test_telegram_api_service_get_chats(httpx_mock, telegram_api_service, response_json, chat):
+    httpx_mock.add_response(json=response_json)
+    assert telegram_api_service.get_chat(chat_id=1234) == chat
 
 
 @pytest.mark.parametrize(
-    'telegram_api_client',
+    'status_code',
     [
-        FakeTelegramAPIClient(FakeResponseWithCustomStatusCode(400)),
-        FakeTelegramAPIClient(FakeResponseWithCustomStatusCode(401)),
-        FakeTelegramAPIClient(FakeResponseWithCustomStatusCode(404)),
-        FakeTelegramAPIClient(FakeResponseWithCustomStatusCode(500)),
-        FakeTelegramAPIClient(FakeResponseWithCustomStatusCode(502)),
+        400, 401, 404, 500, 502
     ]
 )
-def test_telegram_api_service_raises_telegram_api_error(telegram_api_client):
+def test_telegram_api_service_raises_telegram_api_error(httpx_mock, telegram_api_service, status_code):
+    httpx_mock.add_response(status_code=status_code)
     with pytest.raises(exceptions.TelegramAPIError) as error:
-        assert TelegramAPIService(api_client=telegram_api_client).get_chat(chat_id=1234)
+        telegram_api_service.get_chat(chat_id=1234)
     assert error.value.args[0] == 'Could not get chat from Telegram API'
