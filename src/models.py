@@ -45,11 +45,11 @@ class Chat:
 @dataclass(frozen=True, slots=True)
 class TelegramChat:
     chat_id: int
-    title: str | None
+    title: str | None = None
 
     @classmethod
     def from_response_data(cls, response_data: dict) -> Self:
         return cls(
             chat_id=response_data['chat_id'],
-            title=response_data['title'],
+            title=response_data.get('title'),
         )
