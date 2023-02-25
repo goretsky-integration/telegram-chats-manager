@@ -11,10 +11,10 @@ __all__ = (
 class Chat:
     id: int
     type: str
-    title: str | None
-    username: str | None
-    first_name: str | None
-    last_name: str | None
+    title: str | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
 
     @property
     def full_name(self) -> str:
