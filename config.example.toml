@@ -1,0 +1,9 @@
+[logging]
+level = ""
+path = ""  # optional
+
+[database]
+url = ""
+
+[telegram_bot]
+token = ""
