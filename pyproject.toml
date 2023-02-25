@@ -8,6 +8,7 @@ packages = [{include = "telegram_chats_manager"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+httpx = "^0.23.3"
 
 
 [build-system]
