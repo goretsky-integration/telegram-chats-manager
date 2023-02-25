@@ -21,7 +21,7 @@ def load_config(logfile_path: str | pathlib.Path) -> Config:
         config = tomllib.load(file)
 
     return Config(
-        logfile_path=config['logging'].get('path'),
+        logfile_path=config['logging'].get('path') or None,
         loglevel=config['logging']['level'],
         database_url=config['database']['url'],
         telegram_bot_token=config['telegram_bot']['token'],
