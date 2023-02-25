@@ -2,6 +2,7 @@ import contextlib
 
 import httpx
 
+import exceptions
 import models
 
 __all__ = (
@@ -30,15 +31,17 @@ class DatabaseAPIService:
         while not is_end_of_list_reached:
             request_query_params = {'limit': limit, 'offset': offset}
             response = self.__api_client.get(url, params=request_query_params)
+            if response.is_error:
+                raise exceptions.DatabaseAPIError('Could not get telegram chats page')
             response_data = response.json()
             is_end_of_list_reached = response_data['is_end_of_list_reached']
             telegram_chats += response_data['telegram_chats']
             offset += limit
         return [models.TelegramChat.from_response_data(telegram_chat) for telegram_chat in telegram_chats]
 
-    def update_telegram_chat(self, *, chat_id: int, title: str | None):
+    def update_telegram_chat(self, *, chat_id: int, title: str | None) -> None:
         url = f'/telegram-chats/{chat_id}/'
         request_data = {'title': title}
         response = self.__api_client.put(url, json=request_data)
         if response.is_error:
-            raise
+            raise exceptions.DatabaseAPIError('Could not update telegram chat')
