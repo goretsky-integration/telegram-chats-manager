@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from typing import Self
 
-__all__ = ('Chat',)
+__all__ = (
+    'Chat',
+    'TelegramChat',
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,4 +39,17 @@ class Chat:
             username=response_data.get('username'),
             first_name=response_data.get('first_name'),
             last_name=response_data.get('last_name'),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class TelegramChat:
+    chat_id: int
+    title: str | None
+
+    @classmethod
+    def from_response_data(cls, response_data: dict) -> Self:
+        return cls(
+            chat_id=response_data['chat_id'],
+            title=response_data['title'],
         )
