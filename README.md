@@ -1,3 +1,4 @@
+<h2 align="center">✈️ Telegram chats manager</h2>
 <p align="center">
     <a href="https://github.com/goretsky-integration/telegram-chats-manager/actions/workflows/codecov.yaml">
         <img src="https://github.com/goretsky-integration/telegram-chats-manager/actions/workflows/codecov.yaml/badge.svg" alt="Test">
